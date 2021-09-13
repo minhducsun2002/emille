@@ -66,7 +66,8 @@ namespace Emille.Controllers
                     {
                         Description = overwriting ? $"Created key `{key}`." : $"Key `{key}` was updated.",
                         Timestamp = result.Timestamp,
-                        Color = Color.LightGreen
+                        Color = Color.LightGreen,
+                        Footer = new LocalEmbedFooter().WithText($"IP : {HttpContext.Connection.RemoteIpAddress}")
                     }
                 },
             })?.GetAwaiter().GetResult();
@@ -86,7 +87,8 @@ namespace Emille.Controllers
                     {
                         Description = result ? $"Key `{key}` was deleted." : $"Attempted to delete `{key}`, but no such key exists.",
                         Timestamp = DateTimeOffset.Now,
-                        Color = result ? Color.Red : Color.Yellow
+                        Color = result ? Color.Red : Color.Yellow,
+                        Footer = new LocalEmbedFooter().WithText($"IP : {HttpContext.Connection.RemoteIpAddress}")
                     }
                 },
             })?.GetAwaiter().GetResult();
