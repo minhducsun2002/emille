@@ -6,6 +6,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:5.0.301-alpine3.13-amd64 AS build
 WORKDIR /src
 COPY ["emille.csproj", "./"]
+COPY ["nuget.config", "./"]
 RUN dotnet restore "emille.csproj"
 COPY . .
 WORKDIR "/src/"
