@@ -57,28 +57,40 @@ namespace Emille.Controllers
                 new Record { Key = key.ToLowerInvariant(), Value = value, Timestamp = DateTime.Now },
                 new FindOneAndReplaceOptions<Record> { IsUpsert = true, ReturnDocument = ReturnDocument.After }
             );
-            if (!overwriting)
+            
+            webhookClient?.ExecuteAsync(new LocalWebhookMessage
             {
-                webhookClient?.ExecuteAsync(new LocalWebhookMessage
+                Embeds = new List<LocalEmbed>
                 {
-                    Embeds = new List<LocalEmbed>
+                    new()
                     {
-                        new()
-                        {
-                            Description = $"A new key, `{key}` was added.",
-                            Timestamp = result.Timestamp
-                        }
-                    },
-                })?.GetAwaiter().GetResult();
-            }
+                        Description = overwriting ? $"Created key `{key}`." : $"Key `{key}` was updated.",
+                        Timestamp = result.Timestamp,
+                        Color = Color.LightGreen
+                    }
+                },
+            })?.GetAwaiter().GetResult();
+            
             return result;
         }
 
         [HttpDelete("[action]/{key:minlength(1)}")]
         public ActionResult<bool> Delete(string key)
         {
-            var result = recordService.Collection.FindOneAndDelete<Record>(record => record.Key == key.ToLowerInvariant());
-            return result != null;
+            var result = recordService.Collection.FindOneAndDelete<Record>(record => record.Key == key.ToLowerInvariant()) != null;
+            webhookClient?.ExecuteAsync(new LocalWebhookMessage
+            {
+                Embeds = new List<LocalEmbed>
+                {
+                    new()
+                    {
+                        Description = result ? $"Key `{key}` was deleted." : $"Attempted to delete `{key}`, but no such key exists.",
+                        Timestamp = DateTimeOffset.Now,
+                        Color = result ? Color.Red : Color.Yellow
+                    }
+                },
+            })?.GetAwaiter().GetResult();
+            return result;
         }
     }
 }
